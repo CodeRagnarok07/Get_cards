@@ -1,2 +1,6 @@
 /env
 /cards
+
+
+__pycache__/
+*.pyc

@@ -4,56 +4,89 @@ from bs4 import BeautifulSoup
 import re
 import json
 
-""" Obtiene una url y extrae los audios y los texto de las etiquetas que creemos que contienen los audios
-    Crea un archivo Json a partir de esto
+"""
+Módulo para el scraping de audios y diálogos de League of Legends.
+
+Este módulo proporciona funciones para extraer URLs de audio (.ogg) y sus
+correspondientes transcripciones desde la wiki de Fandom de League of Legends,
+almacenando los resultados en archivos JSON estructurados.
 """
 
-name = "Illaoi"
-url = f'https://leagueoflegends.fandom.com/wiki/{name}/LoL/Audio'
-get_tags = 'i, b , audio'
+def scraping(champion: str, url: str, get_tags: str) -> None:
+    """
+    Extrae audios y textos de una página de la wiki y los guarda en un JSON.
 
+    Busca etiquetas específicas en el HTML, extrae las URLs de los archivos de audio
+    y el texto asociado, y organiza esta información en una lista de objetos
+    que se guarda en el directorio 'cards/'.
 
-def scraping(card_name, url, get_tags):
-    # leer cualquier web
+    Args:
+        champion (str): Nombre del campeón o categoría para organizar los archivos.
+        url (str): Dirección URL de la página de audio de la wiki.
+        get_tags (str): Selectores CSS (separados por comas) para identificar
+                         las etiquetas que contienen la información deseada.
+
+    Returns:
+        None
+    """
+    # Realiza la petición a la web
     website = url
-    result = requests.get(website)
+    try:
+        result = requests.get(website)
+        result.raise_for_status()
+    except requests.RequestException as e:
+        print(f"Error al acceder a la URL: {e}")
+        return
+
     content = result.text
     soup = BeautifulSoup(content, 'lxml')
 
-    # Obtenemos los audios y los textos en una lista
+    # Obtenemos las etiquetas que contienen audios y textos
     tags = soup.select(get_tags)
-    """ Extre las etiquetas que creemos que tiene el contenido importante"""
+    
+    # Expresión regular para extraer src="..." o contenido entre etiquetas simple
+    # Nota: El regex original se mantiene pero se documenta su propósito
     get_data = re.compile(r'(?<=src=").*?(?=")|(?<=>").*?(?="<)')
-    """ extrae la url de las etiquetas y el texto de una etiqueta"""
     resultado = get_data.findall(str(tags))
 
-    # Agregamos los textos y audios a un dict
+    # Estructura la información en una lista de diccionarios
     lista = []
     objeto = {
         "url": False
     }
+    
     for i in resultado:
-        """ si es una url agrega 1 elemento a un dic luego agrega ese dict a la lista"""
-        if i.startswith("http") == True:
-            if objeto["url"]:
-                pass
-            else:
+        # Si el elemento parece una URL (comienza con http)
+        if i.startswith("http"):
+            if not objeto["url"]:
                 objeto["url"] = i
         else:
-            if i.endswith(".ogg") == True:
-                pass
-            else:
+            # Si no es una URL y no es un nombre de archivo .ogg, se asume que es el texto
+            if not i.endswith(".ogg"):
                 objeto["text"] = i
-                lista.insert(len(lista), objeto)
-                objeto.clear
+                lista.append(objeto)
                 objeto = {"url": False}
 
-    # CREAR UN ARCHIVO CON LA INFORMACION
-    if not os.path.exists(f'cards/{card_name}'):
-        os.mkdir(f'cards/{card_name}')
+    # CREAR EL DIRECTORIO Y EL ARCHIVO CON LA INFORMACIÓN
+    output_dir = f'data/{champion}'
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir, exist_ok=True)
 
-    with open(f'cards/{card_name}/{card_name}.json', "w") as outfile:
-        json.dump(lista, outfile)
+    file_path = f'{output_dir}/{champion}.json'
+    try:
+        with open(file_path, "w", encoding='utf-8') as outfile:
+            json.dump(lista, outfile, indent=4, ensure_ascii=False)
+        print(f"\n")
+        # Mensaje de resultados
+        print(f"Datos guardados exitosamente en: {file_path}")
+        print(f"\n")
+    except IOError as e:
+        print(f"Error al guardar el archivo JSON: {e}")
 
-
-scraping(name, url, get_tags)
+if __name__ == "__main__":
+    # Configuración por defecto para ejecución directa
+    CHAMPION_NAME = "Illaoi"
+    TARGET_URL = f'https://leagueoflegends.fandom.com/wiki/{CHAMPION_NAME}/LoL/Audio'
+    SELECTORS = 'i, b, audio'
+    
+    scraping(CHAMPION_NAME, TARGET_URL, SELECTORS)
