@@ -3,12 +3,10 @@ from deep_translator import GoogleTranslator
 import json
 
 
-name = "Illaoi"
-
-def translate(card_name):
+def translate(path):
     # open Json
     data = []
-    with open(f'cards/{card_name}/{card_name}.json') as json_file:
+    with open(f'{path}.json') as json_file:
         data = json.load(json_file)
 
     # Translate Json
@@ -19,11 +17,7 @@ def translate(card_name):
         new_object.insert(len(new_object), i)
         print(i)
 
-
-    # # CREAR UN ARCHIVO CON LA INFORMACION
-    with open(f'cards/{card_name}/{card_name}.json', "w") as outfile:
-        json.dump(new_object, outfile)
-    print("Completado")
+    return new_object
 
 
-translate(name)
+translate(path)
