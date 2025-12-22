@@ -1,0 +1,87 @@
+<div class="card-container">
+    <div class="header">
+        <span class="icon">🎧</span>
+        Escucha esta palabra
+    </div>
+
+    <div class="audio-container">
+        {{url_file}}
+    </div>
+
+    <div class="input-section">
+        <label>Escribe la palabra</label>
+        <div class="input-wrapper">
+            {{type:nc:phrase}}
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        function convertToTextarea() {
+            var input = document.getElementById('typeans');
+
+            if (!input) {
+                setTimeout(convertToTextarea, 100);
+                return;
+            }
+
+            if (input.tagName.toLowerCase() === 'textarea') {
+                return; // Ya es textarea
+            }
+
+            // Crear textarea
+            var textarea = document.createElement('textarea');
+            textarea.id = 'typeans';
+            textarea.name = input.name;
+            textarea.value = input.value;
+            textarea.placeholder = 'Escribe aquí...';
+            textarea.rows = 1;
+            textarea.autocomplete = 'off';
+            textarea.autocapitalize = 'off';
+            textarea.spellcheck = false;
+
+            // Copiar clases
+            textarea.className = input.className;
+
+            // Función para auto-redimensionar
+            function autoResize() {
+                textarea.style.height = 'auto';
+                textarea.style.height = Math.max(50, Math.min(textarea.scrollHeight, 200)) + 'px';
+            }
+
+            // Eventos
+            textarea.addEventListener('input', autoResize);
+
+            // Manejar Enter para enviar (Shift+Enter para nueva línea)
+            textarea.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    // Simular envío de respuesta en Anki
+                    if (typeof pycmd !== 'undefined') {
+                        pycmd('ans');
+                    }
+                }
+            });
+
+            // Reemplazar input con textarea
+            input.parentNode.replaceChild(textarea, input);
+
+            // Focus y redimensionar
+            textarea.focus();
+            autoResize();
+        }
+
+        // Intentar convertir inmediatamente y también después de un delay
+        if (document.readyState === 'complete') {
+            convertToTextarea();
+        } else {
+            document.addEventListener('DOMContentLoaded', convertToTextarea);
+        }
+
+        // Respaldo adicional
+        // setTimeout(convertToTextarea, 50);
+        // setTimeout(convertToTextarea, 150);
+        // setTimeout(convertToTextarea, 300);
+    })();
+</script>

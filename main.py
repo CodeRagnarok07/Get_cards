@@ -3,7 +3,8 @@ import sys
 import json
 from colorama import Fore, Style
 
-from utils import downloader, scraping, menu_interactivo, filter_quotes
+from utils import downloader, scraping, menu_interactivo, filter_quotes, create_deck
+
 
 # seleccion de campeones
 with open("data/champions.json", "r") as f:
@@ -50,15 +51,16 @@ if __name__ == "__main__":
                     # pasos
                     print("PASO 1 limpiar duplicados")
 
-                    print(f"Total de quotes: {len(data)}")
+                    print(f"\tTotal de quotes: {len(data)}")
                     new_data = filter_quotes(data)
-                    print(f"Total de quotes sin duplicados: {len(new_data)}")
+                    print(f"\tTotal de quotes sin duplicados: {len(new_data)}")
 
                     print("PASO 2 descargar audios")
                     new_data = downloader(champion['name'],new_data)
 
 
-                    print("pasos 3 create ankie deck")
+                    print("PASO 3 create ankie deck")
+                    create_deck(new_data, champion['name'])
                     
 
 

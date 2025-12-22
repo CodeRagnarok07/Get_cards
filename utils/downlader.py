@@ -13,24 +13,24 @@ def downloader(champion:str,data:list):
         "! se abre una secion para hacer multiples descargas"
         
         for index, item in enumerate(data):
-            name = f'{champion}_{index+1}{extension}'
-            if os.path.exists(f'data/{champion}/{name}'):
-                pass
+            file_name = f'{champion}_{index+1}{extension}'
+            file_path = f'data/{champion}/{file_name}'
+            if os.path.exists(file_path):
+                item["file_path"] = file_path
             else:
 
-                print(f"Downloading File {name}")
+                print(f"Downloading File {file_name}")
                 download = req.get(item["audio_url"])
 
                 if download.status_code == 200: # si el status es 200 comienza la descarga
-                    file_path = f'data/{champion}/{name}'
                     with open(file_path, 'wb') as f:
                         f.write(download.content)
-                        print(f"Success Download File {name}")
+                        print(f"Success Download File {file_name}")
                         item["file_path"] = file_path
-                        new_data.insert(len(new_data), item)
                 else:
-                    print(f"Download Failed For File {name}")
+                    print(f"Download Failed For File {file_name}")
 
+            new_data.insert(len(new_data), item)
 
     return new_data
 
