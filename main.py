@@ -1,4 +1,5 @@
 import os
+import requests
 import sys
 import json
 from colorama import Fore, Style
@@ -7,10 +8,12 @@ from utils import downloader, scraping, menu_interactivo, filter_quotes, create_
 
 
 # seleccion de campeones
-with open("data/champions.json", "r") as f:
-    champions = json.load(f)
+url = "https://ddragon.leagueoflegends.com/cdn/13.24.1/data/en_US/champion.json"
+response = requests.get(url)
+data = response.json()
+champions = list(data["data"].values())
 
-champions_names = [champion["name"] for champion in champions]
+champions_names = sorted([champion["name"] for champion in champions])
 
 opciones = [
     # 'descargar',
@@ -36,7 +39,7 @@ if __name__ == "__main__":
 
         print(f"{Fore.GREEN}{Style.BRIGHT}--- MENÚ DE NAVEGACIÓN ---{Style.RESET_ALL}")
 
-        seleccion = menu_interactivo(champions_names)
+        seleccion = menu_interactivo(champions_names, buscador=True)
 
         for champion in champions:
             if champion["name"] == seleccion:
