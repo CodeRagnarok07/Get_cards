@@ -58,7 +58,7 @@ def create_deck(data, path):
             note = genanki.Note(
                 model=listening_model,
                 fields=[
-                    item['Text'],
+                    item['text'],
                     '',
                     f"[sound:{os.path.basename(file_path)}]",  # Formato Anki para audio
                 ],

@@ -4,15 +4,16 @@ import sys
 import json
 from colorama import Fore, Style
 
-from utils import downloader, scraping, menu_interactivo, filter_quotes, create_deck
-
+from utils import downloader, scraping, menu_interactivo, create_deck
+from urllib.parse import quote
 
 # seleccion de campeones
 url = "https://ddragon.leagueoflegends.com/cdn/13.24.1/data/en_US/champion.json"
 response = requests.get(url)
 data = response.json()
-champions = list(data["data"].values())
 
+
+champions = list(data["data"].values())
 champions_names = sorted([champion["name"] for champion in champions])
 
 opciones = [
@@ -46,23 +47,26 @@ if __name__ == "__main__":
 
                 # check if data exist 
                 route = f"data/{champion['name']}"
+
+                if not os.path.exists(route):
+                    champion_url = f'https://leagueoflegends.fandom.com/wiki/{quote(champion["name"])}/LoL/Audio'
+                    print(f"{Fore.CYAN}Abriendo el navegador y descargando datos para {champion['name']}...{Style.RESET_ALL}")
+                    
+                    # 1. Abrir el navegador
+                    import webbrowser
+                    webbrowser.open(champion_url)
+                    
+                    # 2. Descargar todo el html y procesar
+                    scraping(champion["name"], champion_url)
+                    
                 
                 data = load_champion_data(f"{route}/data.json")
 
                 if data:
-                    # new_data = Downlader.block_download(champion['name'],data)
-                    # pasos
-                    print("PASO 1 limpiar duplicados")
+                    print("PASO 1 descargar audios")
+                    new_data = downloader(champion['name'], data)
 
-                    print(f"\tTotal de quotes: {len(data)}")
-                    new_data = filter_quotes(data)
-                    print(f"\tTotal de quotes sin duplicados: {len(new_data)}")
-
-                    print("PASO 2 descargar audios")
-                    new_data = downloader(champion['name'],new_data)
-
-
-                    print("PASO 3 create ankie deck")
+                    print("PASO 2 create ankie deck")
                     create_deck(new_data, champion['name'])
                     
 
@@ -76,9 +80,7 @@ if __name__ == "__main__":
         if seleccion == "Salir":
             print("¡Adiós!")
             sys.exit(0)
-        
-        # Aquí puedes añadir la lógica para cada opción
-        print(f"Ejecutando {seleccion}...")
+      
     except KeyboardInterrupt:
         print("\n\nSaliendo...")
         sys.exit(0)
