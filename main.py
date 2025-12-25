@@ -63,10 +63,35 @@ if __name__ == "__main__":
                 data = load_champion_data(f"{route}/data.json")
 
                 if data:
-                    print("PASO 1 descargar audios")
+                    # Contar archivos existentes
+                    total_files = len(data)
+                    already_downloaded = 0
+                    extension = ".ogg"
+                    for index, _ in enumerate(data):
+                        file_name = f"{champion['name']}_{index+1}{extension}"
+                        file_path = f"{route}/{file_name}"
+                        if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
+                            already_downloaded += 1
+                    
+                    files_to_download = total_files - already_downloaded
+                    
+                    print(f"\n{Fore.CYAN}Resumen de archivos para {champion['name']}:{Style.RESET_ALL}")
+                    print(f"- Total de entradas en JSON: {total_files}")
+                    print(f"- Archivos ya descargados: {already_downloaded}")
+                    print(f"- Archivos pendientes por descargar: {files_to_download}")
+                    
+                    if files_to_download > 0:
+                        confirm = input(f"\n{Fore.YELLOW}¿Deseas iniciar/continuar la descarga? (s/n): {Style.RESET_ALL}").lower()
+                        if confirm != 's':
+                            print(f"{Fore.RED}Proceso cancelado por el usuario.{Style.RESET_ALL}")
+                            break
+                    else:
+                        print(f"\n{Fore.GREEN}Todos los audios ya están descargados.{Style.RESET_ALL}")
+
+                    print(f"\n{Fore.YELLOW}PASO 1: Descargando audios...{Style.RESET_ALL}")
                     new_data = downloader(champion['name'], data)
 
-                    print("PASO 2 create ankie deck")
+                    print(f"\n{Fore.YELLOW}PASO 2: Creando mazo de Anki...{Style.RESET_ALL}")
                     create_deck(new_data, champion['name'])
                     
 
